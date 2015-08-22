@@ -32,5 +32,5 @@ instance BoardState Board where
 
 neighbours :: Cell -> Set Cell
 neighbours (x, y) = Set.fromList $ [(x - 1, y + 1), (x, y + 1), (x + 1, y + 1),
-                                   (x - 1, y), (x + 1, y),
-                                   (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
+                                    (x - 1, y), (x + 1, y),
+                                    (x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]
