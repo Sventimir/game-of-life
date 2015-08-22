@@ -11,7 +11,7 @@ import Interface.Board (BoardState(..), Cell)
 data Board = Board {
                 current         :: Set Cell,
                 previous        :: Maybe Board
-            } deriving Show
+            }
 
 instance BoardState Board where
     _isLiving cell (Board s _) = cell `Set.member` s
@@ -34,3 +34,6 @@ neighbours :: Cell -> Set Cell
 neighbours (x, y) = Set.fromList $ [(x - 1, y + 1), (x, y + 1), (x + 1, y + 1),
                                     (x - 1, y), (x + 1, y),
                                     (x - 1, y - 1), (x, y - 1), (x + 1, y - 1)]
+
+instance Show Board where
+    show = show . current
