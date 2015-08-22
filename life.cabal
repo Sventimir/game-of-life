@@ -16,7 +16,9 @@ executable life
     main-is:                Main.hs
     default-language:       Haskell2010
     ghc-options:            -O2 -ddump-to-file -ddump-simpl -ddump-stg
-    build-depends:          base >=4.8 && <4.9
+    build-depends:          base >=4.8 && <4.9,
+                            mtl,
+                            containers
 
 Test-suite test-life
     type:                   exitcode-stdio-1.0
@@ -24,4 +26,6 @@ Test-suite test-life
     default-language:       Haskell2010
     ghc-options:            -O2 -ddump-to-file -ddump-simpl -ddump-stg
     build-depends:          base,
-                            HUnit
+                            HUnit,
+                            mtl,
+                            containers
