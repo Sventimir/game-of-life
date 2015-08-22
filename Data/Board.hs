@@ -1,4 +1,5 @@
 module Data.Board (
+    Board(..)
 ) where
 
 import Data.Maybe (fromMaybe)
