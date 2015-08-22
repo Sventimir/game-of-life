@@ -1,6 +1,6 @@
 module Interface.Board where
 
-import Control.Monad.State (State, state, modify)
+import Control.Monad.State (StateT, get, state, modify)
 
 
 type Cell = (Int, Int)
@@ -12,14 +12,14 @@ class BoardState b where
     _previous :: b -> b
 
 
-isLiving :: BoardState b => Cell -> State b Bool
+isLiving :: (BoardState b, Monad m) => Cell -> StateT b m Bool
 isLiving cell = state $ \b -> (_isLiving cell b, b)
 
-alter :: BoardState b => Cell -> State b ()
+alter :: (BoardState b, Monad m) => Cell -> StateT b m ()
 alter cell = modify $ _alter cell
 
-next :: BoardState b => State b ()
-next = modify _next
+next :: (BoardState b, Monad m) => StateT b m b
+next = get >>= \s -> modify _next >> return s
 
-previous :: BoardState b => State b ()
-previous = modify _previous
+previous :: (BoardState b, Monad m) => StateT b m b
+previous = get >>= \s -> modify _previous >> return s
