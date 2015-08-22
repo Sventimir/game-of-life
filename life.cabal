@@ -18,7 +18,9 @@ executable life
     ghc-options:            -O2 -ddump-to-file -ddump-simpl -ddump-stg
     build-depends:          base >=4.8 && <4.9,
                             mtl,
-                            containers
+                            containers,
+                            c2hs==0.20.1,   -- above this version ncurses won't build!
+                            ncurses
 
 Test-suite test-life
     type:                   exitcode-stdio-1.0
