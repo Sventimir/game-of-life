@@ -26,7 +26,7 @@ instance BoardState Board where
                             in Board s' (Just brd)
         where
         isDying c = neighbourCount c < 2 || neighbourCount c > 3
-        isBorn c = neighbourCount c == 2
+        isBorn c = neighbourCount c == 3
         neighbourCount c = Set.size $ neighbours c `Set.intersection` s
 
 
