@@ -18,7 +18,9 @@ executable life
     ghc-options:            -O2 -ddump-to-file -ddump-simpl -ddump-stg
     build-depends:          base >=4.8 && <4.9,
                             mtl,
+                            transformers,
                             containers,
+                            text,
                             ncurses
 
 Test-suite test-life
@@ -29,4 +31,6 @@ Test-suite test-life
     build-depends:          base,
                             HUnit,
                             mtl,
-                            containers
+                            transformers,
+                            containers,
+                            text
