@@ -6,24 +6,10 @@ import qualified Data.Set as Set
 
 import Interface.Board (Cell, next)
 import Data.Board (Board(..))
+import UI.Term (display, initializeDisplay, render, mainLoop)
 
 
-main :: IO (Board, Board)
-main = do
-    putStrLn "Hello Life!"
-    runStateT (loop 10 showNext) initial
-
-initial :: Board
-initial = Board (Set.fromList init) Nothing
+main :: IO ()
+main = display $ initializeDisplay initial >>= render >>= mainLoop >> return ()
     where
-    init = zip [(-1)..1] $ repeat 0
-
-
-loop :: Int -> StateT Board IO Board -> StateT Board IO Board
-loop i s
-    | i > 0 = s >> loop (pred i) s
-    | otherwise = s >> get >>= return
-
-showNext :: StateT Board IO Board
-showNext = next >>= \b -> liftIO (print b >> return b)
-
+    initial = Board Set.empty Nothing
