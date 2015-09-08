@@ -19,9 +19,7 @@ executable life
     build-depends:          base >=4.8 && <4.9,
                             mtl,
                             transformers,
-                            containers,
-                            text,
-                            ncurses
+                            containers
 
 Test-suite test-life
     type:                   exitcode-stdio-1.0
@@ -32,5 +30,4 @@ Test-suite test-life
                             HUnit,
                             mtl,
                             transformers,
-                            containers,
-                            text
+                            containers
