@@ -19,7 +19,8 @@ executable life
     build-depends:          base >=4.8 && <4.9,
                             mtl,
                             transformers,
-                            containers
+                            containers,
+                            gtk
 
 Test-suite test-life
     type:                   exitcode-stdio-1.0
