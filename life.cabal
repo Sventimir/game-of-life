@@ -20,7 +20,8 @@ executable life
                             mtl,
                             transformers,
                             containers,
-                            gtk
+                            gtk3,
+                            cairo
 
 Test-suite test-life
     type:                   exitcode-stdio-1.0
