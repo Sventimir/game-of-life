@@ -1,5 +1,7 @@
 module Data.Board (
-    Board(..)
+    Board,
+    newBoard,
+    emptyBoard
 ) where
 
 import Data.Maybe (fromMaybe)
@@ -13,16 +15,24 @@ data Board = Board {
                 previous        :: Maybe Board
             }
 
+newBoard :: [Cell] -> Board
+newBoard living = Board (Set.fromList living) Nothing
+
+emptyBoard :: Board
+emptyBoard = newBoard []
+
+
 instance BoardState Board where
-    _isLiving cell (Board s _) = cell `Set.member` s
-    _alter cell brd@(Board s _)
-        | _isLiving cell brd = Board (cell `Set.delete` s) (Just brd)
+    getLiving (Board s _) = Set.toList s
+    isLiving cell (Board s _) = cell `Set.member` s
+    alter cell brd@(Board s _)
+        | isLiving cell brd = Board (cell `Set.delete` s) (Just brd)
         | otherwise = Board (cell `Set.insert` s) (Just brd)
-    _previous (Board _ p) = fromMaybe (Board Set.empty Nothing) p
-    _next brd@(Board s _) = let s' = s `Set.union` born Set.\\ dying
-                                born = Set.filter isBorn allNeighbours
-                                dying = Set.filter isDying s
-                                allNeighbours = Set.unions $ map neighbours $ Set.toList s
+    previous (Board _ p) = fromMaybe (Board Set.empty Nothing) p
+    next brd@(Board s _) = let s' = s `Set.union` born Set.\\ dying
+                               born = Set.filter isBorn allNeighbours
+                               dying = Set.filter isDying s
+                               allNeighbours = Set.unions $ map neighbours $ Set.toList s
                             in Board s' (Just brd)
         where
         isDying c = neighbourCount c < 2 || neighbourCount c > 3
