@@ -42,6 +42,13 @@ main = do
                 drawBoard viewport state
             return False
 
+        prevBtn <- builderGetObject builder GTK.castToButton "prevBtn"
+        prevBtn `GTK.on` GTK.buttonReleaseEvent $ do
+            liftIO $ do
+                atomically $ alterBoard previous state
+                drawBoard viewport state
+            return False
+
         GTK.mainGUI
     where
     initBoard = newBoard [(3, 4), (3, 5), (3, 6)]

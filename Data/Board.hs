@@ -28,7 +28,7 @@ instance BoardState Board where
     alter cell brd@(Board s _)
         | isLiving cell brd = Board (cell `Set.delete` s) (Just brd)
         | otherwise = Board (cell `Set.insert` s) (Just brd)
-    previous (Board _ p) = fromMaybe (Board Set.empty Nothing) p
+    previous brd@(Board _ p) = fromMaybe brd p
     next brd@(Board s _) = let s' = s `Set.union` born Set.\\ dying
                                born = Set.filter isBorn allNeighbours
                                dying = Set.filter isDying s
