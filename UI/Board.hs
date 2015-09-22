@@ -1,6 +1,7 @@
 module UI.Board (
     clearBoard,
-    drawBoard
+    drawBoard,
+    highlightCell
 ) where
 
 import Control.Monad (liftM)
@@ -9,7 +10,10 @@ import qualified Graphics.UI.Gtk as GTK
 import qualified Graphics.Rendering.Cairo as Cairo
 
 import Interface.Board (Cell, BoardState(..), translate)
-import UI.SharedMem (Display(..), Mem, atomically, board, display)
+import UI.SharedMem (Display(..), Mem, atomically, board, display, alterDisplay)
+
+
+type Color = (Double, Double, Double) -- RGB
 
 
 clearBoard :: (GTK.DrawableClass v) => v -> IO ()
@@ -26,7 +30,9 @@ drawBoard view mem = selectLivingCells mem
 
 
 drawBoardAction :: [Cell] -> Cairo.Render ()
-drawBoardAction visible =  clearBoardAction >> sequence_ (map drawCell visible)
+drawBoardAction visible = do
+        clearBoardAction
+        sequence_ $ map (drawCell (0.67, 0.67, 0.67)) visible
 
 
 selectLivingCells :: BoardState b => Mem b -> IO [Cell]
@@ -39,20 +45,38 @@ selectLivingCells mem = atomically $ do
                       (lastx, lasty) = lastCell disp in filter $
                 \(x, y) -> firstx < x && x < lastx && firsty < y && y < lasty
 
-drawCell :: Cell -> Cairo.Render ()
-drawCell (col, row) = let x = 10 * fromIntegral col
-                          y = 10 * fromIntegral row in do
+
+highlightCell :: (BoardState b, GTK.DrawableClass v) => v -> Mem b -> Cell -> IO ()
+highlightCell view mem cell = selectLivingCells mem
+            >>= \liv -> GTK.renderWithDrawable view
+                    (drawBoardAction liv >> drawCell (0.8, 0.8, 0.8) cell)
+
+
+drawCell :: Color -> Cell -> Cairo.Render ()
+drawCell (r, g, b) cell = do
         Cairo.setSourceRGB 0 0 0
         Cairo.setLineWidth 2
-
-        Cairo.moveTo x y
-        Cairo.lineTo (x + 10) y
-        Cairo.lineTo (x + 10) (y + 10)
-        Cairo.lineTo x (y + 10)
-        Cairo.closePath
+        squarePath cell
         Cairo.strokePreserve
-
-        Cairo.setSourceRGB 0.67 0.67 0.67
+        Cairo.setSourceRGB r g b
         Cairo.fill
-
         Cairo.stroke
+
+eraseCell :: Cell -> Cairo.Render ()
+eraseCell cell = do
+        Cairo.setSourceRGB 1 1 1
+        Cairo.setLineWidth 2
+        squarePath cell
+        Cairo.strokePreserve
+        Cairo.fill
+        Cairo.stroke
+
+
+squarePath :: Cell -> Cairo.Render ()
+squarePath (col, row) = let x = 10 * fromIntegral col
+                            y = 10 * fromIntegral row in do
+        Cairo.moveTo x y
+        Cairo.lineTo (x + 9) y
+        Cairo.lineTo (x + 9) (y + 9)
+        Cairo.lineTo x (y + 9)
+        Cairo.closePath

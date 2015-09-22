@@ -42,7 +42,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToggleButton" id="AlterBtn">
+          <object class="GtkToggleButton" id="alterBtn">
             <property name="label" translatable="yes">Alter</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>

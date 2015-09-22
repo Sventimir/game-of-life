@@ -10,7 +10,7 @@ import Data.Board (Board, newBoard, emptyBoard)
 import Interface.Board (Cell, BoardState(..), translate)
 import UI.SharedMem (Display(..), initDisplay, Mem, newMem, atomically,
                     display, alterBoard, alterDisplay)
-import UI.Board (drawBoard)
+import UI.Board (drawBoard, highlightCell)
 
 
 main :: IO ()
@@ -29,20 +29,35 @@ main = do
         gameView <- builderGetObject builder GTK.castToDrawingArea "gameView"
         viewport <- GTK.widgetGetDrawWindow gameView
 
+        arrowCursor <- GTK.cursorNew GTK.Arrow
+        GTK.drawWindowSetCursor viewport $ Just arrowCursor
+
+        GTK.widgetAddEvents gameView [GTK.PointerMotionMask]
+
         gameView `GTK.on` GTK.exposeEvent $ do
             liftIO $ do
                 updateDisplaySize gameView state
                 drawBoard viewport state
             return False
 
-        nextBtn <- builderGetObject builder GTK.castToButton "nextBtn"
+        gameView `GTK.on` GTK.motionNotifyEvent $ do
+            liftIO $ do
+                (x, y) <- GTK.widgetGetPointer gameView
+                highlightCell viewport state (x `div` 10, y `div` 10)
+            return False
+
+        gameView `GTK.on` GTK.leaveNotifyEvent $ do
+            liftIO $ drawBoard viewport state
+            return False
+
+        [nextBtn, prevBtn, alterBtn] <- sequence $
+                    map (getButton builder) ["nextBtn", "prevBtn", "alterBtn"]
         nextBtn `GTK.on` GTK.buttonReleaseEvent $ do
             liftIO $ do
                 atomically $ alterBoard next state
                 drawBoard viewport state
             return False
 
-        prevBtn <- builderGetObject builder GTK.castToButton "prevBtn"
         prevBtn `GTK.on` GTK.buttonReleaseEvent $ do
             liftIO $ do
                 atomically $ alterBoard previous state
@@ -52,6 +67,7 @@ main = do
         GTK.mainGUI
     where
     initBoard = newBoard [(3, 4), (3, 5), (3, 6)]
+    getButton bld name = builderGetObject bld GTK.castToButton name
 
 
 updateDisplaySize :: (BoardState b, GTK.WidgetClass v) => v -> Mem b -> IO ()
@@ -64,3 +80,4 @@ updateDisplaySize view mem = liftIO $ do
     where
     rectSize (GTK.Rectangle fx fy lx ly) = (lx - fx, ly - fy)
     update cell disp = disp { lastCell = cell }
+
