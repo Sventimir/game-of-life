@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 import Control.Monad.Trans (liftIO)
 
 import qualified Graphics.UI.Gtk as GTK
@@ -28,6 +28,9 @@ main = do
 
         gameView <- builderGetObject builder GTK.castToDrawingArea "gameView"
         viewport <- GTK.widgetGetDrawWindow gameView
+        [nextBtn, prevBtn] <- sequence $
+                    map (getButton builder) ["nextBtn", "prevBtn"]
+        alterBtn <- builderGetObject builder GTK.castToToggleButton "alterBtn"
 
         arrowCursor <- GTK.cursorNew GTK.Arrow
         GTK.drawWindowSetCursor viewport $ Just arrowCursor
@@ -42,16 +45,15 @@ main = do
 
         gameView `GTK.on` GTK.motionNotifyEvent $ do
             liftIO $ do
-                (x, y) <- GTK.widgetGetPointer gameView
-                highlightCell viewport state (x `div` 10, y `div` 10)
+                GTK.toggleButtonGetActive alterBtn >>= \alt -> when alt $ do
+                    (x, y) <- GTK.widgetGetPointer gameView
+                    highlightCell viewport state (x `div` 10, y `div` 10)
             return False
 
         gameView `GTK.on` GTK.leaveNotifyEvent $ do
             liftIO $ drawBoard viewport state
             return False
 
-        [nextBtn, prevBtn, alterBtn] <- sequence $
-                    map (getButton builder) ["nextBtn", "prevBtn", "alterBtn"]
         nextBtn `GTK.on` GTK.buttonReleaseEvent $ do
             liftIO $ do
                 atomically $ alterBoard next state
