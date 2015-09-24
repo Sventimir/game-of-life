@@ -44,14 +44,19 @@ main = do
             return False
 
         gameView `GTK.on` GTK.motionNotifyEvent $ do
-            liftIO $ do
-                GTK.toggleButtonGetActive alterBtn >>= \alt -> when alt $ do
-                    (x, y) <- GTK.widgetGetPointer gameView
-                    highlightCell viewport state (x `div` 10, y `div` 10)
+            liftIO $ GTK.toggleButtonGetActive alterBtn >>= \alt -> when alt $
+                    liftM cellFromCoordinates (GTK.widgetGetPointer gameView)
+                    >>= highlightCell viewport state
             return False
 
         gameView `GTK.on` GTK.leaveNotifyEvent $ do
             liftIO $ drawBoard viewport state
+            return False
+
+        gameView `GTK.on` GTK.buttonPressEvent $ do
+            liftIO $ GTK.toggleButtonGetActive alterBtn >>= \alt -> when alt $ do
+                cell <- liftM cellFromCoordinates (GTK.widgetGetPointer gameView)
+                atomically $ alterBoard (alter cell) state
             return False
 
         nextBtn `GTK.on` GTK.buttonReleaseEvent $ do
@@ -83,3 +88,5 @@ updateDisplaySize view mem = liftIO $ do
     rectSize (GTK.Rectangle fx fy lx ly) = (lx - fx, ly - fy)
     update cell disp = disp { lastCell = cell }
 
+cellFromCoordinates :: (Int, Int) -> Cell
+cellFromCoordinates (x, y) = (x `div` 10, y `div` 10)
