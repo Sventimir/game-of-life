@@ -59,22 +59,22 @@ main = do
                 atomically $ alterBoard (alter cell) state
             return False
 
-        nextBtn `GTK.on` GTK.buttonReleaseEvent $ do
-            liftIO $ do
-                atomically $ alterBoard next state
-                drawBoard viewport state
-            return False
-
-        prevBtn `GTK.on` GTK.buttonReleaseEvent $ do
-            liftIO $ do
-                atomically $ alterBoard previous state
-                drawBoard viewport state
-            return False
+        let withBoard = alterBoardAction state viewport
+        nextBtn `GTK.on` GTK.buttonReleaseEvent $ withBoard next
+        prevBtn `GTK.on` GTK.buttonReleaseEvent $ withBoard previous
 
         GTK.mainGUI
     where
     initBoard = newBoard [(3, 4), (3, 5), (3, 6)]
     getButton bld name = builderGetObject bld GTK.castToButton name
+
+
+alterBoardAction :: BoardState b => Mem b -> GTK.DrawWindow -> (b -> b) -> GTK.EventM ptr Bool
+alterBoardAction state viewport f = do
+        liftIO $ do
+            atomically $ alterBoard f state
+            drawBoard viewport state
+        return False
 
 
 updateDisplaySize :: (BoardState b, GTK.WidgetClass v) => v -> Mem b -> IO ()
