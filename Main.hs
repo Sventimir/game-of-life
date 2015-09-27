@@ -9,7 +9,7 @@ import Graphics.UI.Gtk.Builder (builderNew, builderAddFromFile, builderGetObject
 import Data.Board (Board, newBoard, emptyBoard)
 import Interface.Board (Cell, BoardState(..), translate)
 import UI.SharedMem (Display(..), initDisplay, Mem, newMem, atomically,
-                    display, alterBoard, alterDisplay)
+                    display, alterBoard, alterDisplay, cellAt, mapPair)
 import UI.Board (drawBoard, highlightCell)
 
 
@@ -37,6 +37,8 @@ main = do
 
         GTK.widgetAddEvents gameView [GTK.PointerMotionMask]
 
+        mainWin `GTK.on` GTK.keyPressEvent $ keyMoveDisplay state viewport
+
         gameView `GTK.on` GTK.exposeEvent $ do
             liftIO $ do
                 updateDisplaySize gameView state
@@ -45,7 +47,7 @@ main = do
 
         gameView `GTK.on` GTK.motionNotifyEvent $ do
             liftIO $ GTK.toggleButtonGetActive alterBtn >>= \alt -> when alt $
-                    liftM cellFromCoordinates (GTK.widgetGetPointer gameView)
+                    liftM (mapPair $ flip div 10) (GTK.widgetGetPointer gameView)
                     >>= highlightCell viewport state
             return False
 
@@ -55,7 +57,7 @@ main = do
 
         gameView `GTK.on` GTK.buttonPressEvent $ do
             liftIO $ GTK.toggleButtonGetActive alterBtn >>= \alt -> when alt $ do
-                cell <- liftM cellFromCoordinates (GTK.widgetGetPointer gameView)
+                cell <- GTK.widgetGetPointer gameView >>= cellFromCoordinates state
                 atomically $ alterBoard (alter cell) state
             return False
 
@@ -76,6 +78,25 @@ alterBoardAction state viewport f = do
             drawBoard viewport state
         return False
 
+keyMoveDisplay :: BoardState b => Mem b -> GTK.DrawWindow -> GTK.EventM GTK.EKey Bool
+keyMoveDisplay state viewport = do
+        movement <- liftM keyToMvmnt GTK.eventKeyVal
+        liftIO $ do
+            atomically $ alterDisplay (move movement) state
+            drawBoard viewport state
+        return True
+    where
+    keyToMvmnt 65361 = ((-1), 0)        -- left
+    keyToMvmnt 65362 = (0, (-1))        -- up
+    keyToMvmnt 65363 = (1, 0)           -- right
+    keyToMvmnt 65364 = (0, 1)           -- down
+    keyToMvmnt _ = (0, 0)
+    move (x, y) displ = let (fx, fy) = firstCell displ
+                            (lx, ly) = lastCell displ in displ {
+                                    firstCell = (fx + x, fy + y),
+                                    lastCell = (lx + x, ly + y)
+                                }
+
 
 updateDisplaySize :: (BoardState b, GTK.WidgetClass v) => v -> Mem b -> IO ()
 updateDisplaySize view mem = liftIO $ do
@@ -88,5 +109,5 @@ updateDisplaySize view mem = liftIO $ do
     rectSize (GTK.Rectangle fx fy lx ly) = (lx - fx, ly - fy)
     update cell disp = disp { lastCell = cell }
 
-cellFromCoordinates :: (Int, Int) -> Cell
-cellFromCoordinates (x, y) = (x `div` 10, y `div` 10)
+cellFromCoordinates :: Mem b -> (Int, Int) -> IO Cell
+cellFromCoordinates state coords = atomically $ cellAt state coords

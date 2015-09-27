@@ -41,9 +41,10 @@ selectLivingCells mem = atomically $ do
             living <- liftM getLiving $ board mem
             return $ inView disp living
     where
-    inView disp = let (firstx, firsty) = firstCell disp
-                      (lastx, lasty) = lastCell disp in filter $
-                \(x, y) -> firstx < x && x < lastx && firsty < y && y < lasty
+    inView disp living = let (firstx, firsty) = firstCell disp
+                             (lastx, lasty) = lastCell disp
+                         in [(x - firstx, y - firsty) | (x, y) <- living,
+                            firstx < x && x < lastx && firsty < y && y < lasty]
 
 
 highlightCell :: (BoardState b, GTK.DrawableClass v) => v -> Mem b -> Cell -> IO ()
