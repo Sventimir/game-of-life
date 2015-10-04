@@ -9,7 +9,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="n_rows">9</property>
-        <property name="n_columns">9</property>
+        <property name="n_columns">12</property>
         <child>
           <object class="GtkButton" id="prevBtn">
             <property name="label">gtk-go-back</property>
@@ -35,8 +35,8 @@
             <property name="image_position">right</property>
           </object>
           <packing>
-            <property name="left_attach">6</property>
-            <property name="right_attach">9</property>
+            <property name="left_attach">9</property>
+            <property name="right_attach">12</property>
             <property name="top_attach">8</property>
             <property name="bottom_attach">9</property>
           </packing>
@@ -61,8 +61,23 @@
             <property name="can_focus">False</property>
           </object>
           <packing>
-            <property name="right_attach">9</property>
+            <property name="right_attach">12</property>
             <property name="bottom_attach">8</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="playBtn">
+            <property name="label">gtk-media-play</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="use_stock">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">6</property>
+            <property name="right_attach">9</property>
+            <property name="top_attach">8</property>
+            <property name="bottom_attach">9</property>
           </packing>
         </child>
       </object>

@@ -21,13 +21,15 @@ import Interface.Board (Cell)
 
 data Display = Display {
         firstCell           :: Cell,
-        lastCell            :: Cell
+        lastCell            :: Cell,
+        autoNext            :: Bool
     }
 
 initDisplay :: Display
 initDisplay = Display {
         firstCell = (0, 0),
-        lastCell = (0, 0)
+        lastCell = (0, 0),
+        autoNext = False
     }
 
 

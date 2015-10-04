@@ -15,7 +15,7 @@ cabal-version:              >=1.10
 executable life
     main-is:                Main.hs
     default-language:       Haskell2010
-    ghc-options:            -O2 -ddump-to-file -ddump-simpl -ddump-stg
+    ghc-options:            -O2 -ddump-to-file -ddump-simpl -ddump-stg -threaded
     build-depends:          base >=4.8 && <4.9,
                             mtl,
                             containers,

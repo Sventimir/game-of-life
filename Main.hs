@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Concurrent (threadDelay, forkIO)
 import Control.Monad (liftM, when)
 import Control.Monad.Trans (liftIO)
 
@@ -30,7 +31,8 @@ main = do
         viewport <- GTK.widgetGetDrawWindow gameView
         [nextBtn, prevBtn] <- sequence $
                     map (getButton builder) ["nextBtn", "prevBtn"]
-        alterBtn <- builderGetObject builder GTK.castToToggleButton "alterBtn"
+        [alterBtn, playBtn] <- sequence $
+                    map (getToggle builder) ["alterBtn", "playBtn"]
 
         arrowCursor <- GTK.cursorNew GTK.Arrow
         GTK.drawWindowSetCursor viewport $ Just arrowCursor
@@ -61,22 +63,28 @@ main = do
                 atomically $ alterBoard (alter cell) state
             return False
 
-        let withBoard = alterBoardAction state viewport
+        let withBoard f = liftIO (alterBoardAction state viewport f) >> return False
         nextBtn `GTK.on` GTK.buttonReleaseEvent $ withBoard next
         prevBtn `GTK.on` GTK.buttonReleaseEvent $ withBoard previous
+        playBtn `GTK.on` GTK.buttonReleaseEvent $ do
+            isOn <- liftIO $ GTK.toggleButtonGetActive playBtn
+            liftIO . atomically $ alterDisplay (\d -> d { autoNext = not isOn }) state
+            return False
+
+        forkIO $ autoPlay state viewport
 
         GTK.mainGUI
     where
     initBoard = newBoard [(3, 4), (3, 5), (3, 6)]
     getButton bld name = builderGetObject bld GTK.castToButton name
+    getToggle bld name = builderGetObject bld GTK.castToToggleButton name
 
 
-alterBoardAction :: BoardState b => Mem b -> GTK.DrawWindow -> (b -> b) -> GTK.EventM ptr Bool
+alterBoardAction :: BoardState b => Mem b -> GTK.DrawWindow -> (b -> b) -> IO ()
 alterBoardAction state viewport f = do
-        liftIO $ do
-            atomically $ alterBoard f state
-            drawBoard viewport state
-        return False
+        atomically $ alterBoard f state
+        drawBoard viewport state
+
 
 keyMoveDisplay :: BoardState b => Mem b -> GTK.DrawWindow -> GTK.EventM GTK.EKey Bool
 keyMoveDisplay state viewport = do
@@ -111,3 +119,11 @@ updateDisplaySize view mem = liftIO $ do
 
 cellFromCoordinates :: Mem b -> (Int, Int) -> IO Cell
 cellFromCoordinates state coords = atomically $ cellAt state coords
+
+
+autoPlay :: BoardState b => Mem b -> GTK.DrawWindow -> IO ()
+autoPlay state view = do
+        auto <- atomically $ liftM autoNext (display state)
+        when auto $ GTK.postGUIAsync $ alterBoardAction state view next
+        threadDelay 1000000
+        autoPlay state view
